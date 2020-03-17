@@ -7,7 +7,7 @@ variable "gcp_project" {
 	description = "Name of your gcp project"
 	validation {
 		condition = can(regex("^[a-z]+-[a-z]+-[a-z]{3,8}$", var.gcp_project))
-		error_message = "Must be of this format: org-project-env. e.g. airasia-payments-dev."
+		error_message = "Must be of this format: org-project-env. e.g. org-project-env."
 	}
 }
 
