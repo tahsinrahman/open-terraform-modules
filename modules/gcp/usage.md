@@ -2,6 +2,16 @@
 
 Check the `variables.tf` of each module to know other adjustable options.
 
+### Common Variables
+
+- `gcp_project`: The Google Cloud Project where your infra will be created. Must be of this
+form `org-project-env` to maintain a consistent naming for all resources. e.g. `msft-netcore-dev`
+
+- `region`: The region where the infrastructure will be hosted. Zones are automatically assigned.
+
+- `random_suffix`: Whether each created infrastructure resource name should have a random suffix to
+support more dynamic naming. Default- false.
+
 ### k8s-cluster
 
 A `kubernetes` cluster using Google Kubernetes Engine.
@@ -14,7 +24,6 @@ module "gke_cluster" {
 	gcp_project = var.gcp_project
 	private_network = module.vpc.network
 	private_subnet = module.vpc.subnet
-	location = var.region
 	region = var.region
 	random_suffix = var.random_suffix
 	initial_node_count = var.initial_node_count
