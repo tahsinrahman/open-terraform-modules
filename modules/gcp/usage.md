@@ -61,3 +61,17 @@ module "vpc" {
 	random_suffix = var.random_suffix
 }
 ```
+
+### firewall
+
+Example usage-
+
+```
+module "firewall" {
+    source = "./modules/gcp/firewall"
+    gcp_project = var.gcp_project
+    network = var.vpc
+    public_subnetwork = var.public_subnet
+    private_subnetwork = var.private_subnet
+}
+```
