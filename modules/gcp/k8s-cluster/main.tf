@@ -82,7 +82,7 @@ module "gke_cluster" {
 	source = "./modules/gke-cluster"
 	name = var.cluster_name != "" ? var.cluster_name : local.cluster_name
 	gcp_project = var.gcp_project
-	location = var.location
+	location = var.region
 	network = var.private_network
 	subnetwork = var.private_subnet
 	service_account_email = module.gke_service_account.email
