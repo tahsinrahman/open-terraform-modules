@@ -21,9 +21,7 @@ module "gke_cluster" {
 	disk_size = var.node_disk_size
 
 	# kubernetes namespaces to create
-	kubernetes_namespace_list = [
-    "myts"
-  ]
+	kubernetes_namespace_list = ["myts"]
 
 	kubernetes_secrets = {
 		"myts:mysql": {
