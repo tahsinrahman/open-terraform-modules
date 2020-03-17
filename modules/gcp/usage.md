@@ -2,13 +2,15 @@
 
 Check the `variables.tf` of each module to know other adjustable options.
 
-### k8s.cluster
+### k8s-cluster
+
+A `kubernetes` cluster using Google Kubernetes Engine.
 
 Example usage-
 
 ```
 module "gke_cluster" {
-	source = "./modules/gcp/k8s.cluster"
+	source = "./modules/gcp/k8s-cluster"
 	gcp_project = var.gcp_project
 	private_network = module.vpc.network
 	private_subnet = module.vpc.subnet
@@ -36,6 +38,8 @@ module "gke_cluster" {
 
 ### mysql
 
+A managed `mysql` instance using Google Cloud SQL.
+
 Example usage-
 
 ```
@@ -52,6 +56,8 @@ module "mysql" {
 
 ### network
 
+A private network creation module which is used by other resources.
+
 Example usage-
 
 ```
@@ -63,6 +69,8 @@ module "vpc" {
 ```
 
 ### firewall
+
+Firewall rules for your private network in a cluster or infrastructure.
 
 Example usage-
 
