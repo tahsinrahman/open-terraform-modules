@@ -47,6 +47,6 @@ output "private_subnet_secondary_range_name" {
   value = google_compute_subnetwork.vpc_private_subnet.secondary_ip_range.0.range_name
 }
 
-output "subnet_secondary_range_name" {
-  value = google_compute_subnetwork.vpc_subnet.secondary_ip_range.0.range_name
+output "bastion_host_ip" {
+  value = module.bastion.ip_address
 }

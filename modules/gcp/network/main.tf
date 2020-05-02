@@ -24,6 +24,7 @@ locals {
   vpc_name            = format("%s-%s-%s%s", local.project_name_parts[2], local.project_name_parts[1], "vpc", local.suffix)
   public_subnet_name  = format("%s-%s-%s%s", local.project_name_parts[2], local.project_name_parts[1], "subnet-public", local.suffix)
   private_subnet_name = format("%s-%s-%s%s", local.project_name_parts[2], local.project_name_parts[1], "subnet-private", local.suffix)
+  bastion_vm_name     = format("%s-%s-%s%s", local.project_name_parts[2], local.project_name_parts[1], "bastion", local.suffix)
   cloud_nat_name      = format("%s-%s-%s%s", local.project_name_parts[2], local.project_name_parts[1], "cloud-nat", local.suffix)
   cloud_router_name   = format("%s-%s-%s%s", local.project_name_parts[2], local.project_name_parts[1], "cloud-router", local.suffix)
 }
@@ -104,4 +105,17 @@ resource "google_compute_router_nat" "cloud_nat" {
     source_ip_ranges_to_nat = ["ALL_IP_RANGES"]
   }
   nat_ip_allocate_option = "AUTO_ONLY"
+}
+
+module "bastion" {
+  source                             = "terraform-google-modules/bastion-host/google"
+  version                            = "2.0.0"
+  name                               = local.bastion_vm_name
+  project                            = var.gcp_project
+  region                             = var.region
+  zone                               = "${var.region}-a"
+  network                            = google_compute_network.vpc.self_link
+  subnet                             = google_compute_subnetwork.vpc_private_subnet.self_link
+  members                            = var.bastion_allowed_members
+  service_account_roles_supplemental = ["roles/container.admin"]
 }
