@@ -11,23 +11,23 @@
 # we have to construct some of the configuration values dynamically
 # ------------------------------------------------------------------------------
 resource "random_id" "password" {
-	byte_length = 4
+  byte_length = 4
 }
 
 locals {
-	project_name_parts = split("-", var.project)
-	master_user_name = format("%s-%s-%s", local.project_name_parts[2], local.project_name_parts[1], "sql-root-user")
-	master_user_password = format("%s-%s-%s", local.project_name_parts[2], "sql-root", random_id.password.hex)
-	application_user_name = format("%s-%s-%s", local.project_name_parts[2], local.project_name_parts[1], "sql-app-user")
-	application_user_password = format("%s-%s-%s", local.project_name_parts[2], "sql-app", random_id.password.hex)
-	# Determine the engine type
-	is_postgres = replace(var.engine, "POSTGRES", "") != var.engine
-	is_mysql = replace(var.engine, "MYSQL", "") != var.engine
+  project_name_parts        = split("-", var.project)
+  master_user_name          = format("%s-%s-%s", local.project_name_parts[2], local.project_name_parts[1], "sql-root-user")
+  master_user_password      = format("%s-%s-%s", local.project_name_parts[2], "sql-root", random_id.password.hex)
+  application_user_name     = format("%s-%s-%s", local.project_name_parts[2], local.project_name_parts[1], "sql-app-user")
+  application_user_password = format("%s-%s-%s", local.project_name_parts[2], "sql-app", random_id.password.hex)
+  # Determine the engine type
+  is_postgres = replace(var.engine, "POSTGRES", "") != var.engine
+  is_mysql    = replace(var.engine, "MYSQL", "") != var.engine
 
-	# Calculate actuals, so we get expected behavior for each engine
-	actual_binary_log_enabled = local.is_postgres ? false : var.mysql_binary_log_enabled
-	actual_availability_type = local.is_postgres && var.enable_failover_replica ? "REGIONAL" : "ZONAL"
-	actual_failover_replica_count = local.is_postgres ? 0 : var.enable_failover_replica ? 1 : 0
+  # Calculate actuals, so we get expected behavior for each engine
+  actual_binary_log_enabled     = local.is_postgres ? false : var.mysql_binary_log_enabled
+  actual_availability_type      = local.is_postgres && var.enable_failover_replica ? "REGIONAL" : "ZONAL"
+  actual_failover_replica_count = local.is_postgres ? 0 : var.enable_failover_replica ? 1 : 0
 }
 
 # ------------------------------------------------------------------------------
@@ -38,69 +38,69 @@ locals {
 # ------------------------------------------------------------------------------
 
 resource "google_sql_database_instance" "master" {
-	depends_on = [
-		null_resource.dependency_getter]
+  depends_on = [
+  null_resource.dependency_getter]
 
-	provider = google-beta
-	name = var.name
-	project = var.project
-	region = var.region
-	database_version = var.engine
+  provider         = google-beta
+  name             = var.name
+  project          = var.project
+  region           = var.region
+  database_version = var.engine
 
-	settings {
-		tier = var.machine_type
-		activation_policy = var.activation_policy
-		disk_autoresize = var.disk_autoresize
+  settings {
+    tier              = var.machine_type
+    activation_policy = var.activation_policy
+    disk_autoresize   = var.disk_autoresize
 
-		ip_configuration {
-			dynamic "authorized_networks" {
-				for_each = var.authorized_networks
-				content {
-					name = lookup(authorized_networks.value, "name", null)
-					value = authorized_networks.value.value
-				}
-			}
+    ip_configuration {
+      dynamic "authorized_networks" {
+        for_each = var.authorized_networks
+        content {
+          name  = lookup(authorized_networks.value, "name", null)
+          value = authorized_networks.value.value
+        }
+      }
 
-			ipv4_enabled = var.enable_public_internet_access
-			private_network = var.private_network
-			require_ssl = var.require_ssl
-		}
+      ipv4_enabled    = var.enable_public_internet_access
+      private_network = var.private_network
+      require_ssl     = var.require_ssl
+    }
 
-		backup_configuration {
-			binary_log_enabled = local.actual_binary_log_enabled
-			enabled = var.backup_enabled
-			start_time = var.backup_start_time
-		}
+    backup_configuration {
+      binary_log_enabled = local.actual_binary_log_enabled
+      enabled            = var.backup_enabled
+      start_time         = var.backup_start_time
+    }
 
-		maintenance_window {
-			day = var.maintenance_window_day
-			hour = var.maintenance_window_hour
-			update_track = var.maintenance_track
-		}
+    maintenance_window {
+      day          = var.maintenance_window_day
+      hour         = var.maintenance_window_hour
+      update_track = var.maintenance_track
+    }
 
-		disk_size = var.disk_size
-		disk_type = var.disk_type
-		availability_type = local.actual_availability_type
+    disk_size         = var.disk_size
+    disk_type         = var.disk_type
+    availability_type = local.actual_availability_type
 
-		dynamic "database_flags" {
-			for_each = var.database_flags
-			content {
-				name = database_flags.value.name
-				value = database_flags.value.value
-			}
-		}
+    dynamic "database_flags" {
+      for_each = var.database_flags
+      content {
+        name  = database_flags.value.name
+        value = database_flags.value.value
+      }
+    }
 
-		user_labels = var.custom_labels
-	}
+    user_labels = var.custom_labels
+  }
 
-	# Default timeouts are 10 minutes, which in most cases should be enough.
-	# Sometimes the database creation can, however, take longer, so we
-	# increase the timeouts slightly.
-	timeouts {
-		create = var.resource_timeout
-		delete = var.resource_timeout
-		update = var.resource_timeout
-	}
+  # Default timeouts are 10 minutes, which in most cases should be enough.
+  # Sometimes the database creation can, however, take longer, so we
+  # increase the timeouts slightly.
+  timeouts {
+    create = var.resource_timeout
+    delete = var.resource_timeout
+    update = var.resource_timeout
+  }
 }
 
 # ------------------------------------------------------------------------------
@@ -108,14 +108,14 @@ resource "google_sql_database_instance" "master" {
 # ------------------------------------------------------------------------------
 
 resource "google_sql_database" "default" {
-	depends_on = [
-		google_sql_database_instance.master]
+  depends_on = [
+  google_sql_database_instance.master]
 
-	name = var.db_name
-	project = var.project
-	instance = google_sql_database_instance.master.name
-	charset = var.db_charset
-	collation = var.db_collation
+  name      = var.db_name
+  project   = var.project
+  instance  = google_sql_database_instance.master.name
+  charset   = var.db_charset
+  collation = var.db_collation
 }
 
 # ------------------------------------------------------------------------------
@@ -123,32 +123,32 @@ resource "google_sql_database" "default" {
 # ------------------------------------------------------------------------------
 
 resource "google_sql_user" "default" {
-	depends_on = [
-		google_sql_database.default]
+  depends_on = [
+  google_sql_database.default]
 
-	project = var.project
-	name = local.master_user_name
-	password = local.master_user_password
-	instance = google_sql_database_instance.master.name
-	# Postgres users don't have hosts, so the API will ignore this value which causes Terraform to attempt
-	# to recreate the user each time.
-	# See https://github.com/terraform-providers/terraform-provider-google/issues/1526 for more information.
-	host = local.is_postgres ? null : var.master_user_host
+  project  = var.project
+  name     = local.master_user_name
+  password = local.master_user_password
+  instance = google_sql_database_instance.master.name
+  # Postgres users don't have hosts, so the API will ignore this value which causes Terraform to attempt
+  # to recreate the user each time.
+  # See https://github.com/terraform-providers/terraform-provider-google/issues/1526 for more information.
+  host = local.is_postgres ? null : var.master_user_host
 }
 
 resource "google_sql_user" "app_user" {
-	depends_on = [
-		google_sql_database.default
-	]
+  depends_on = [
+    google_sql_database.default
+  ]
 
-	project = var.project
-	name = local.application_user_name
-	password = local.application_user_password
-	instance = google_sql_database_instance.master.name
-	# Postgres users don't have hosts, so the API will ignore this value which causes Terraform to attempt
-	# to recreate the user each time.
-	# See https://github.com/terraform-providers/terraform-provider-google/issues/1526 for more information.
-	host = local.is_postgres ? null : var.master_user_host
+  project  = var.project
+  name     = local.application_user_name
+  password = local.application_user_password
+  instance = google_sql_database_instance.master.name
+  # Postgres users don't have hosts, so the API will ignore this value which causes Terraform to attempt
+  # to recreate the user each time.
+  # See https://github.com/terraform-providers/terraform-provider-google/issues/1526 for more information.
+  host = local.is_postgres ? null : var.master_user_host
 }
 
 # ------------------------------------------------------------------------------
@@ -160,9 +160,9 @@ resource "google_sql_user" "app_user" {
 # ------------------------------------------------------------------------------
 
 resource "null_resource" "dependency_getter" {
-	provisioner "local-exec" {
-		command = "echo ${length(var.dependencies)}"
-	}
+  provisioner "local-exec" {
+    command = "echo ${length(var.dependencies)}"
+  }
 }
 
 # ------------------------------------------------------------------------------
@@ -170,71 +170,71 @@ resource "null_resource" "dependency_getter" {
 # ------------------------------------------------------------------------------
 
 resource "google_sql_database_instance" "failover_replica" {
-	count = local.actual_failover_replica_count
+  count = local.actual_failover_replica_count
 
-	depends_on = [
-		google_sql_database_instance.master,
-		google_sql_database.default,
-		google_sql_user.default,
-		google_sql_user.app_user,
-	]
+  depends_on = [
+    google_sql_database_instance.master,
+    google_sql_database.default,
+    google_sql_user.default,
+    google_sql_user.app_user,
+  ]
 
-	provider = google-beta
-	name = "${var.name}-failover"
-	project = var.project
-	region = var.region
-	database_version = var.engine
+  provider         = google-beta
+  name             = "${var.name}-failover"
+  project          = var.project
+  region           = var.region
+  database_version = var.engine
 
-	# The name of the instance that will act as the master in the replication setup.
-	master_instance_name = google_sql_database_instance.master.name
+  # The name of the instance that will act as the master in the replication setup.
+  master_instance_name = google_sql_database_instance.master.name
 
-	replica_configuration {
-		# Specifies that the replica is the failover target.
-		failover_target = true
-	}
+  replica_configuration {
+    # Specifies that the replica is the failover target.
+    failover_target = true
+  }
 
-	settings {
-		crash_safe_replication = true
+  settings {
+    crash_safe_replication = true
 
-		tier = var.machine_type
-		disk_autoresize = var.disk_autoresize
+    tier            = var.machine_type
+    disk_autoresize = var.disk_autoresize
 
-		ip_configuration {
-			dynamic "authorized_networks" {
-				for_each = var.authorized_networks
-				content {
-					name = authorized_networks.value.name
-					value = authorized_networks.value.value
-				}
-			}
+    ip_configuration {
+      dynamic "authorized_networks" {
+        for_each = var.authorized_networks
+        content {
+          name  = authorized_networks.value.name
+          value = authorized_networks.value.value
+        }
+      }
 
-			ipv4_enabled = var.enable_public_internet_access
-			private_network = var.private_network
-			require_ssl = var.require_ssl
-		}
+      ipv4_enabled    = var.enable_public_internet_access
+      private_network = var.private_network
+      require_ssl     = var.require_ssl
+    }
 
-		disk_size = var.disk_size
-		disk_type = var.disk_type
+    disk_size = var.disk_size
+    disk_type = var.disk_type
 
-		dynamic "database_flags" {
-			for_each = var.database_flags
-			content {
-				name = database_flags.value.name
-				value = database_flags.value.value
-			}
-		}
+    dynamic "database_flags" {
+      for_each = var.database_flags
+      content {
+        name  = database_flags.value.name
+        value = database_flags.value.value
+      }
+    }
 
-		user_labels = var.custom_labels
-	}
+    user_labels = var.custom_labels
+  }
 
-	# Default timeouts are 10 minutes, which in most cases should be enough.
-	# Sometimes the database creation can, however, take longer, so we
-	# increase the timeouts slightly.
-	timeouts {
-		create = var.resource_timeout
-		delete = var.resource_timeout
-		update = var.resource_timeout
-	}
+  # Default timeouts are 10 minutes, which in most cases should be enough.
+  # Sometimes the database creation can, however, take longer, so we
+  # increase the timeouts slightly.
+  timeouts {
+    create = var.resource_timeout
+    delete = var.resource_timeout
+    update = var.resource_timeout
+  }
 }
 
 # ------------------------------------------------------------------------------
@@ -242,71 +242,71 @@ resource "google_sql_database_instance" "failover_replica" {
 # ------------------------------------------------------------------------------
 
 resource "google_sql_database_instance" "read_replica" {
-	count = var.num_read_replicas
+  count = var.num_read_replicas
 
-	depends_on = [
-		google_sql_database_instance.master,
-		google_sql_database_instance.failover_replica,
-		google_sql_database.default,
-		google_sql_user.default,
-		google_sql_user.app_user,
-	]
+  depends_on = [
+    google_sql_database_instance.master,
+    google_sql_database_instance.failover_replica,
+    google_sql_database.default,
+    google_sql_user.default,
+    google_sql_user.app_user,
+  ]
 
-	provider = google-beta
-	name = "${var.name}-read-${count.index}"
-	project = var.project
-	region = var.region
-	database_version = var.engine
+  provider         = google-beta
+  name             = "${var.name}-read-${count.index}"
+  project          = var.project
+  region           = var.region
+  database_version = var.engine
 
-	# The name of the instance that will act as the master in the replication setup.
-	master_instance_name = google_sql_database_instance.master.name
+  # The name of the instance that will act as the master in the replication setup.
+  master_instance_name = google_sql_database_instance.master.name
 
-	replica_configuration {
-		# Specifies that the replica is not the failover target.
-		failover_target = false
-	}
+  replica_configuration {
+    # Specifies that the replica is not the failover target.
+    failover_target = false
+  }
 
-	settings {
-		tier = var.machine_type
-		disk_autoresize = var.disk_autoresize
+  settings {
+    tier            = var.machine_type
+    disk_autoresize = var.disk_autoresize
 
-		ip_configuration {
-			dynamic "authorized_networks" {
-				for_each = var.authorized_networks
-				content {
-					name = authorized_networks.value.name
-					value = authorized_networks.value.value
-				}
-			}
+    ip_configuration {
+      dynamic "authorized_networks" {
+        for_each = var.authorized_networks
+        content {
+          name  = authorized_networks.value.name
+          value = authorized_networks.value.value
+        }
+      }
 
-			ipv4_enabled = var.enable_public_internet_access
-			private_network = var.private_network
-			require_ssl = var.require_ssl
-		}
+      ipv4_enabled    = var.enable_public_internet_access
+      private_network = var.private_network
+      require_ssl     = var.require_ssl
+    }
 
-		disk_size = var.disk_size
-		disk_type = var.disk_type
+    disk_size = var.disk_size
+    disk_type = var.disk_type
 
-		dynamic "database_flags" {
-			for_each = var.database_flags
-			content {
-				name = database_flags.value.name
-				value = database_flags.value.value
-			}
-		}
+    dynamic "database_flags" {
+      for_each = var.database_flags
+      content {
+        name  = database_flags.value.name
+        value = database_flags.value.value
+      }
+    }
 
-		user_labels = var.custom_labels
-	}
+    user_labels = var.custom_labels
+  }
 
-	# Read replica creation is initiated concurrently, but the provider creates
-	# the resources sequentially. Therefore we increase the timeouts considerably
-	# to allow successful creation of multiple read replicas without having to
-	# fear the operation timing out.
-	timeouts {
-		create = var.resource_timeout
-		delete = var.resource_timeout
-		update = var.resource_timeout
-	}
+  # Read replica creation is initiated concurrently, but the provider creates
+  # the resources sequentially. Therefore we increase the timeouts considerably
+  # to allow successful creation of multiple read replicas without having to
+  # fear the operation timing out.
+  timeouts {
+    create = var.resource_timeout
+    delete = var.resource_timeout
+    update = var.resource_timeout
+  }
 }
 
 # ------------------------------------------------------------------------------
@@ -314,14 +314,14 @@ resource "google_sql_database_instance" "read_replica" {
 # ------------------------------------------------------------------------------
 
 data "template_file" "complete" {
-	depends_on = [
-		google_sql_database_instance.master,
-		google_sql_database_instance.failover_replica,
-		google_sql_database_instance.read_replica,
-		google_sql_database.default,
-		google_sql_user.default,
-		google_sql_user.app_user,
-	]
+  depends_on = [
+    google_sql_database_instance.master,
+    google_sql_database_instance.failover_replica,
+    google_sql_database_instance.read_replica,
+    google_sql_database.default,
+    google_sql_user.default,
+    google_sql_user.app_user,
+  ]
 
-	template = true
+  template = true
 }
