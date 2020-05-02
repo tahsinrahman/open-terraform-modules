@@ -92,10 +92,12 @@ module "gke_cluster" {
   machine_type          = var.machine_type
   disk_type             = var.disk_type
   disk_size             = var.disk_size
+  enable_private_nodes  = var.enable_private_nodes
 }
 
-# Configure kubectl with the credentials of the GKE cluster.
+# Configure kubectl with the credentials of the GKE cluster if cluster is public.
 resource "null_resource" "configure_kubectl" {
+  count = var.enable_private_nodes ? 0 : 1
   provisioner "local-exec" {
     command = "gcloud components install beta && gcloud beta container clusters get-credentials ${module.gke_cluster.name} --region ${var.region} --project ${var.gcp_project}"
 

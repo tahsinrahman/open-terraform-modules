@@ -64,6 +64,12 @@ variable "disk_size" {
   default     = 10
 }
 
+variable "enable_private_nodes" {
+  description = "Control whether nodes have internal IP addresses only. If enabled, all nodes are given only RFC 1918 private addresses and communicate with the master via private networking."
+  type        = bool
+  default     = true
+}
+
 variable "random_suffix" {
   type        = bool
   description = "Whether to add a random suffix in resource names or not. Default is false."
