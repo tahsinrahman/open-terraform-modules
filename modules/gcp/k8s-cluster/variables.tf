@@ -8,6 +8,12 @@ variable "region" {
   type        = string
 }
 
+variable "cluster_location" {
+  description = "The location of the cluster. If the cluster is regional, this must be the same region. Otherwise, it should be the zone of the region. Defaults to first zone of the region"
+  type        = string
+  default     = null
+}
+
 variable "private_network" {
   description = "The self link of the VPC with which the cluster needs to be attached to."
   type        = string
@@ -37,7 +43,7 @@ variable "kubernetes_secrets" {
 variable "initial_node_count" {
   description = "Number of nodes the cluster must have."
   type        = number
-  default     = 3
+  default     = 1
 }
 
 variable "max_node_count" {

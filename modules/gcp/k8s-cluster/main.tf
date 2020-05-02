@@ -62,7 +62,8 @@ locals {
   # and project_name_parts[1] contains env and project name respectively
   # ---------------------------------------------------------------------
   cluster_name                 = format("%s-%s-%s%s", local.project_name_parts[2], local.project_name_parts[1], "cluster", local.suffix)
-  cluster_service_account_name = format("%s-%s-%s%s", local.project_name_parts[2], local.project_name_parts[1], "service-account", local.suffix)
+  cluster_service_account_name = format("%s-%s-%s%s", local.project_name_parts[2], local.project_name_parts[1], "sa", local.suffix)
+  cluster_location             = var.cluster_location != null ? var.cluster_location : "${var.region}-a"
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -82,7 +83,7 @@ module "gke_cluster" {
   source                = "./modules/gke-cluster"
   name                  = var.cluster_name != "" ? var.cluster_name : local.cluster_name
   gcp_project           = var.gcp_project
-  location              = var.region
+  location              = local.cluster_location
   network               = var.private_network
   subnetwork            = var.private_subnet
   service_account_email = module.gke_service_account.email
