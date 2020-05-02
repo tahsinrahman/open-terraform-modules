@@ -80,19 +80,20 @@ module "gke_service_account" {
 # CREATE A CLUSTER
 # ---------------------------------------------------------------------------------------------------------------------
 module "gke_cluster" {
-  source                = "./modules/gke-cluster"
-  name                  = var.cluster_name != "" ? var.cluster_name : local.cluster_name
-  gcp_project           = var.gcp_project
-  location              = local.cluster_location
-  network               = var.private_network
-  subnetwork            = var.private_subnet
-  service_account_email = module.gke_service_account.email
-  initial_node_count    = var.initial_node_count
-  max_node_count        = var.max_node_count
-  machine_type          = var.machine_type
-  disk_type             = var.disk_type
-  disk_size             = var.disk_size
-  enable_private_nodes  = var.enable_private_nodes
+  source                            = "./modules/gke-cluster"
+  name                              = var.cluster_name != "" ? var.cluster_name : local.cluster_name
+  gcp_project                       = var.gcp_project
+  location                          = local.cluster_location
+  network                           = var.private_network
+  subnetwork                        = var.private_subnet
+  service_account_email             = module.gke_service_account.email
+  initial_node_count                = var.initial_node_count
+  max_node_count                    = var.max_node_count
+  machine_type                      = var.machine_type
+  disk_type                         = var.disk_type
+  disk_size                         = var.disk_size
+  enable_private_nodes              = var.enable_private_nodes
+  master_authorized_networks_config = var.master_authorized_networks_config
 }
 
 # Configure kubectl with the credentials of the GKE cluster if cluster is public.

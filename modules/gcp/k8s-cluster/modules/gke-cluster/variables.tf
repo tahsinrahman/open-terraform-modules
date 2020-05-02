@@ -87,3 +87,11 @@ variable "master_ipv4_cidr_block" {
   default     = "172.16.0.0/28"
 }
 
+variable "master_authorized_networks_config" {
+  description = "The desired configuration options for master authorized networks. Omit the nested cidr_blocks attribute to disallow external access (except the cluster node IPs, which GKE automatically whitelists)"
+  type = list(object({
+    cidr_block   = string
+    display_name = string
+  }))
+  default = null
+}

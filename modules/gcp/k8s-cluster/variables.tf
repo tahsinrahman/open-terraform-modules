@@ -70,6 +70,15 @@ variable "enable_private_nodes" {
   default     = true
 }
 
+variable "master_authorized_networks_config" {
+  description = "The desired configuration options for master authorized networks. Omit the nested cidr_blocks attribute to disallow external access (except the cluster node IPs, which GKE automatically whitelists)"
+  type = list(object({
+    cidr_block   = string
+    display_name = string
+  }))
+  default = null
+}
+
 variable "random_suffix" {
   type        = bool
   description = "Whether to add a random suffix in resource names or not. Default is false."
